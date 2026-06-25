@@ -200,11 +200,11 @@ st.markdown(
 )
 
 st.markdown(
-    "If you have any questions, comments, feedback, or things you want added to this dashboard, please reach out to me!"
+    "All data used in this dashboard has been sourced from Basketball Reference. If you have any questions, comments, feedback, or things you want added to this dashboard, please reach out to me!"
 )
 
 st.markdown(
-    "The first visual below, explores how shot selection in the game has changed since the inaugural season in 1997. It notably highlights the famous disappearance of the midrange game, shifting from a peak of 50% of shots taken at specific areas in the midrange, down to a peak of 21% in 2026. You can play through an animation of the evolution over the years, or use the slider at the bottom to manually scrub through time. You can hover on the heatmap to get the percentage of shots taken at each distance from the rim."
+    "The first visual below, explores how shot selection in the game has changed since the inaugural season in 1997. It notably highlights the famous disappearance of the midrange game, shifting from a peak of 50% of shots taken at specific areas in the midrange, down to a peak of 21% in 2026. You can play through an animation of the evolution over the years, or use the slider at the bottom to manually scrub through time. You can hover on the heatmap to get the percentage of shots taken at each distance from the rim. Please keep in mind that these shot locations are not based on true x, y coordinates from WNBA data, but rather simulated shots based on true historic rates for each range of shot."
 )
 
 # ----------------------------
