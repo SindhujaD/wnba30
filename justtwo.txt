@@ -1,0 +1,211 @@
+import streamlit as st
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+from scipy.stats import gaussian_kde
+
+
+# ----------------------------
+# LOAD
+# ----------------------------
+df = pd.read_csv("./processed/team_shooting.csv")
+
+
+# ----------------------------
+# DISTANCE ZONES
+# ----------------------------
+DISTANCE_ZONES = {
+    "rim_rate": (0, 4),
+    "floater_rate": (5, 9),
+    "mid_rate": (10, 16),
+    "long_mid_rate": (17, 21),
+    "three_rate": (22, 30),
+}
+
+
+# ----------------------------
+# SYNTHETIC DISTANCES
+# ----------------------------
+def generate_distances(season_df, samples=12000):
+
+    distances = []
+
+    for _, row in season_df.iterrows():
+
+        team_samples = samples // len(season_df)
+
+        for zone, bounds in DISTANCE_ZONES.items():
+
+            n = int(team_samples * row[zone])
+
+            distances.extend(
+                np.random.uniform(
+                    bounds[0],
+                    bounds[1],
+                    n
+                )
+            )
+
+    return np.array(distances)
+
+
+dist97 = generate_distances(
+    df[df["season"] == 1997]
+)
+
+dist26 = generate_distances(
+    df[df["season"] == 2026]
+)
+
+
+# ----------------------------
+# KDE
+# ----------------------------
+x = np.linspace(0, 30, 500)
+
+kde97 = gaussian_kde(dist97)
+kde26 = gaussian_kde(dist26)
+
+density97 = kde97(x)
+density26 = kde26(x)
+
+# Normalize to percent of peak
+global_max = max(
+    density97.max(),
+    density26.max()
+)
+
+density97 = (
+    density97 /
+    global_max
+) * 100
+
+density26 = (
+    density26 /
+    global_max
+) * 100
+
+heat97 = np.tile(
+    density97,
+    (80, 1)
+)
+
+heat26 = np.tile(
+    density26,
+    (80, 1)
+)
+
+
+# ----------------------------
+# SELECT SEASON
+# ----------------------------
+selected_season = st.selectbox(
+    "Select Season",
+    [1997, 2026]
+)
+
+if selected_season == 1997:
+    heat = heat97
+else:
+    heat = heat26
+
+
+# ----------------------------
+# ROTATE HEATMAP
+# ----------------------------
+heat = np.rot90(heat)
+
+
+# ----------------------------
+# SINGLE PLOT
+# ----------------------------
+fig, ax = plt.subplots(
+    figsize=(6, 10)
+)
+
+sns.heatmap(
+    heat,
+    cmap="magma",
+    vmin=0,
+    vmax=100,
+    cbar=True,
+    cbar_kws={
+        "label": "Relative Shot Frequency (%)"
+    },
+    ax=ax
+)
+
+
+# ----------------------------
+# AXES
+# ----------------------------
+ticks = np.linspace(
+    500,
+    0,
+    7
+)
+
+labels = [
+    "0",
+    "5",
+    "10",
+    "15",
+    "20",
+    "25",
+    "30"
+]
+
+# Distance now vertical
+ax.set_yticks(ticks)
+ax.set_yticklabels(labels)
+
+ax.set_xticks([])
+
+ax.set_ylabel(
+    "Shot Distance (ft)"
+)
+
+ax.set_xlabel("")
+
+
+# ----------------------------
+# COURT REFERENCE LINES
+# ----------------------------
+refs = [
+    (0, "Rim"),
+    (4, "RA"),
+    (15, "FT"),
+    (22, "3PT")
+]
+
+for ft, label in refs:
+
+    ypos = 500 - (ft / 30 * 500)
+
+    ax.axhline(
+        ypos,
+        color="white",
+        linestyle="--",
+        linewidth=2
+    )
+
+    ax.text(
+        3,
+        ypos + 2,
+        label,
+        color="white",
+        fontsize=11
+    )
+
+
+ax.set_title(
+    f"WNBA Shot Distance Profile ({selected_season})",
+    fontsize=18
+)
+
+plt.tight_layout()
+
+st.title( "WNBA Field Goal Distance Evolution")
+
+st.pyplot(fig)s
